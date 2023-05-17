@@ -1,2 +1,34 @@
-/target
-/src/protogen/
+debug/
+target/
+**/*.rs.bk
+*.pdb
+.idea
+.idea_modules
+*.iml
+*.iws
+out
+gen
+*~
+._*
+.Apple*
+.DS_Store
+.fuse_hidden
+Network Trash Folder
+.nfs*
+.TemporaryItems
+Temporary Items
+.Trash-*
+.Trashes
+.VolumeIcon.icns
+*.egg-info
+.eggs
+.pytest_cache
+*.pyc
+distribute*
+build
+dist
+pytest_runner*.egg
+__pycache__
+.gradle
+/deploy.yaml
+/src/protogen

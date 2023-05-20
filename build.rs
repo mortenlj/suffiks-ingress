@@ -10,8 +10,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         .out_dir(generated)
         .build_server(true)
         .compile(
-            &["proto/extension.proto"],
-            &["proto", "proto/thirdparty"],
+            &["proto/suffiks/extension/proto/extension.proto"],
+            &["proto/suffiks/extension/proto", "proto/thirdparty"],
         )?;
 
     fix_generated_code(generated)?;

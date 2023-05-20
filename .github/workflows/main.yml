@@ -1,4 +1,4 @@
-name: Build and deploy Mutilator
+name: Build and deploy Suffiks Ingress
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -6,8 +6,6 @@ concurrency:
 
 on:
   push:
-    paths-ignore:
-      - charts/**
 
 env:
   REGISTRY: ghcr.io/${{ github.repository }}
@@ -43,6 +41,8 @@ jobs:
       VERSION: "${{ needs.setup.outputs.VERSION }}"
     steps:
       - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # ratchet:actions/checkout@v3
+        with:
+          submodules: 'true'
       - name: Login to GitHub Packages Docker Registry
         uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # ratchet:docker/login-action@v2
         with:
@@ -53,7 +53,7 @@ jobs:
         uses: earthly/actions-setup@135d686cdc4619918fd1b542d0a08d61dd104518 # ratchet:earthly/actions-setup@v1
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and possibly push mutilator
+      - name: Build and possibly push suffiks-ingress
         env:
           EARTHLY_PUSH: "${{ github.ref == 'refs/heads/main' }}"
         run: |

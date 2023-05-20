@@ -1,0 +1,9 @@
+[submodule "proto/thirdparty/k8s.io/api"]
+	path = proto/thirdparty/k8s.io/api
+	url = https://github.com/kubernetes/api
+[submodule "proto/thirdparty/k8s.io/apimachinery"]
+	path = proto/thirdparty/k8s.io/apimachinery
+	url = https://github.com/kubernetes/apimachinery
+[submodule "proto/suffiks"]
+	path = proto/suffiks
+	url = git@github.com:suffiks/suffiks.git

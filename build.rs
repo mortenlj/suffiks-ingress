@@ -6,6 +6,7 @@ use std::path::PathBuf;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let generated = "src/protogen";
+    fs::create_dir_all(&generated)?;
     tonic_build::configure()
         .out_dir(generated)
         .build_server(true)

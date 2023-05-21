@@ -3,8 +3,9 @@ FROM rust:1-bullseye
 
 prepare:
     FROM rust:1
+    WORKDIR /code
     RUN cargo install cargo-chef
-    RUN apt-get --yes update && apt-get --yes install cmake musl-tools gcc-aarch64-linux-gnu
+    RUN apt-get --yes update && apt-get --yes install cmake musl-tools gcc-aarch64-linux-gnu protobuf-compiler
     RUN rustup target add x86_64-unknown-linux-musl
     RUN rustup target add aarch64-unknown-linux-gnu
 
@@ -15,7 +16,7 @@ prepare:
 
 chef-planner:
     FROM +prepare
-    COPY --dir src Cargo.lock Cargo.toml .
+    COPY --dir src proto build.rs Cargo.lock Cargo.toml .
     RUN cargo chef prepare --recipe-path recipe.json
     SAVE ARTIFACT recipe.json
 
@@ -29,7 +30,7 @@ chef-cook:
 build:
     FROM +chef-cook
 
-    COPY --dir src Cargo.lock Cargo.toml .
+    COPY --dir src proto build.rs Cargo.lock Cargo.toml .
     ARG target
     RUN cargo build --release --target ${target}
 
@@ -39,11 +40,11 @@ build:
 docker:
     FROM cgr.dev/chainguard/static
 
-    WORKDIR /
+    WORKDIR /bin
     ARG target
-    COPY --platform=linux/amd64 (+build/suffiks-ingress --target=$target) /suffiks-ingress
+    COPY --platform=linux/amd64 (+build/suffiks-ingress --target=$target) suffiks-ingress
 
-    CMD ["/suffiks-ingress"]
+    CMD ["/bin/suffiks-ingress"]
 
     # builtins must be declared
     ARG EARTHLY_GIT_SHORT_HASH

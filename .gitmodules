@@ -7,3 +7,4 @@
 [submodule "proto/suffiks"]
 	path = proto/suffiks
 	url = git@github.com:suffiks/suffiks.git
+	branch = proto-package

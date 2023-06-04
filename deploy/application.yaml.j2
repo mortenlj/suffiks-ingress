@@ -1,0 +1,9 @@
+---
+apiVersion: suffiks.com/v1
+kind: Application
+metadata:
+  name: suffiks-ingress
+  namespace: default
+spec:
+  image: "{{ environ('image') }}:{{ environ('VERSION') }}"
+  port: 8080

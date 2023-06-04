@@ -60,8 +60,9 @@ manifests:
     COPY deploy/* /templates
     ARG REGISTRY=mortenlj/suffiks-ingress
     ARG VERSION=$EARTHLY_GIT_SHORT_HASH
-    RUN --entrypoint -- /templates/deployment.yaml.j2 /templates/variables.toml --format=toml > ./deploy.yaml
-    # RUN cat /templates/*.yaml >> ./deploy.yaml
+    ARG image=${REGISTRY}/suffiks-ingress
+    RUN --entrypoint -- /templates/application.yaml.j2 /templates/variables.toml --format=toml > ./deploy.yaml
+    RUN cat /templates/*.yaml >> ./deploy.yaml
     SAVE ARTIFACT ./deploy.yaml AS LOCAL deploy.yaml
 
 deploy:

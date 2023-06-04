@@ -1,0 +1,42 @@
+---
+apiVersion: suffiks.com/v1
+kind: Extension
+metadata:
+  name: ingresses
+spec:
+  controller:
+    namespace: "ibidem-system"
+    service: "suffiks"
+    openAPIV3Schema:
+      properties:
+        ingress:
+          properties:
+            routes:
+              description: List of routes this applicatin will handle
+              items:
+                properties:
+                  host:
+                    type: string
+                  path:
+                    type: string
+                  port:
+                    format: uint16
+                    minimum: 0.0
+                    type: integer
+                  type:
+                    enum:
+                      - http
+                      - grpc
+                    type: string
+                required:
+                  - host
+                  - path
+                  - port
+                  - type
+                type: object
+              type: array
+          required:
+            - routes
+          type: object
+  targets:
+    - Application

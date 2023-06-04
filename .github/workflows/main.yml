@@ -101,6 +101,10 @@ jobs:
           sudo zerotier-cli listnetworks
           ping -c 5 k3s.home.ibidem.no
           echo "::endgroup::"
+          echo "::group::Deploy debugging"
+          pwd
+          ls -la "${PWD}"
+          echo "::endgroup::"
           kubectl apply --namespace=default --context=k3s-home --filename=deploy.yaml --selector=app=showrunner --prune=true --wait=true --timeout=60s
       - name: Leave ZeroTier network
         if: always()

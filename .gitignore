@@ -32,3 +32,4 @@ __pycache__
 .gradle
 /deploy.yaml
 /src/protogen
+/config/

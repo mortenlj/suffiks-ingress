@@ -7,16 +7,17 @@ use tonic::{Code, Request, Response, Status};
 use crate::protogen::extension::{DefaultResponse, DocumentationRequest, DocumentationResponse, Response as ExtensionResponse, SyncRequest, ValidationRequest, ValidationResponse};
 use crate::protogen::extension::extension_server::Extension;
 
-// Fake spec to help generating openapi schema for extension
+/// Fake spec to help generating openapi schema for extension
 #[derive(Serialize, Deserialize, CustomResource, JsonSchema, Debug, Clone)]
 #[kube(group = "suffiks.com", version = "v1", kind = "XIngress", namespaced)]
-// #[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
 pub struct XIngressSpec {
     ingress: Ingress,
 }
 
 #[derive(Serialize, Deserialize, JsonSchema, Debug, Clone)]
 pub struct Ingress {
+    /// List of routes this applicatin will handle
     routes: Vec<Route>,
 }
 
@@ -25,12 +26,12 @@ pub struct Route {
     host: String,
     path: String,
     port: u16,
-    // #[serde(rename = "type")]
+    #[serde(rename = "type")]
     route_type: RouteType,
 }
 
 #[derive(Serialize, Deserialize, JsonSchema, Debug, Clone)]
-// #[serde(rename_all = "lowercase")]
+#[serde(rename_all = "lowercase")]
 pub enum RouteType {
     Http,
     Grpc,

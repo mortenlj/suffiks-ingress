@@ -58,11 +58,11 @@ jobs:
           EARTHLY_PUSH: "${{ github.ref == 'refs/heads/main' }}"
         run: |
           earthly +deploy --VERSION=${VERSION} --REGISTRY=${REGISTRY}
-#      - name: Save manifests for later deploy
-#        uses: actions/upload-artifact@v3
-#        with:
-#          name: manifests
-#          path: deploy.yaml
+      - name: Save manifests for later deploy
+        uses: actions/upload-artifact@v3
+        with:
+          name: manifests
+          path: deploy.yaml
 
 #  deploy:
 #    name: Deploy

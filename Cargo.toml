@@ -2,12 +2,15 @@
 name = "suffiks-ingress"
 version = "0.1.0"
 edition = "2021"
+default-run = "suffiks-ingress"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 anyhow = "1.0.71"
+atty = "0.2.14"
 env_logger = "0.10.0"
+figment = { version = "0.10.10", features = ["env", "yaml"] }
 hyper-rustls = "0.24.0"
 k8s-openapi = { version = "0.18.0", features = ["v1_26", "schemars"] }
 kube = { version = "0.82.2", default-features = false, features = ["derive", "rustls-tls", "client", "config", "kube-derive"] }
@@ -20,10 +23,12 @@ serde_yaml = "0.9.21"
 tokio = { version = "1.28.2", features = ["full"] }
 tokio-stream = "0.1.14"
 tonic = { version = "0.9.2", features = ["tls"] }
+tracing = "0.1.37"
+tracing-subscriber = { version = "0.3.17", features = ["fmt", "json"] }
 
 [[bin]]
-name = "crd"
-path = "src/crd.rs"
+    name = "crd"
+    path = "src/crd.rs"
 
 [build-dependencies]
 tonic-build = "0.9.2"

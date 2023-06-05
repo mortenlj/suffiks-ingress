@@ -3,6 +3,9 @@ apiVersion: suffiks.com/v1
 kind: Extension
 metadata:
   name: ingresses
+  namespace: ibidem-system
+  labels:
+    app: suffiks-ingress
 spec:
   controller:
     namespace: "ibidem-system"

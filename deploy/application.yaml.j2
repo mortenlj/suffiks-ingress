@@ -4,6 +4,8 @@ kind: Application
 metadata:
   name: suffiks-ingress
   namespace: default
+  labels:
+    app: suffiks-ingress
 spec:
   image: "{{ environ('image') }}:{{ environ('VERSION') }}"
   port: 8080

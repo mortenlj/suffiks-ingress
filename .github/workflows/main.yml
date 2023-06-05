@@ -105,7 +105,7 @@ jobs:
           pwd
           ls -la "${PWD}"
           echo "::endgroup::"
-          kubectl apply --namespace=default --context=k3s-home --filename=deploy.yaml --selector=app=showrunner --prune=true --wait=true --timeout=60s
+          kubectl apply --context=k3s-home --filename=deploy.yaml --selector=app=suffiks-ingress --prune=true --wait=true --timeout=60s
       - name: Leave ZeroTier network
         if: always()
         uses: mortenlj/zerotier-actions/leave-zt@main

@@ -7,10 +7,10 @@ prepare:
     RUN cargo install cargo-chef
     RUN apt-get --yes update && apt-get --yes install cmake musl-tools gcc-aarch64-linux-gnu protobuf-compiler
     RUN rustup target add x86_64-unknown-linux-musl
-    RUN rustup target add aarch64-unknown-linux-gnu
+    RUN rustup target add aarch64-unknown-linux-musl
 
-    ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=/usr/bin/aarch64-linux-gnu-gcc
-    ENV CC_aarch64_unknown_linux_gnu=/usr/bin/aarch64-linux-gnu-gcc
+    ENV CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=/usr/bin/aarch64-linux-gnu-gcc
+    ENV CC_aarch64_unknown_linux_musl=/usr/bin/aarch64-linux-gnu-gcc
 
     SAVE IMAGE --push ghcr.io/mortenlj/suffiks-ingress/cache:prepare
 
@@ -38,7 +38,7 @@ build:
     SAVE IMAGE --push ghcr.io/mortenlj/suffiks-ingress/cache:build-${target}
 
 docker:
-    FROM cgr.dev/chainguard/rust:latest
+    FROM cgr.dev/chainguard/static:latest
 
     WORKDIR /bin
     ARG target
@@ -67,6 +67,6 @@ manifests:
 
 deploy:
     BUILD --platform=linux/amd64 +prepare
-    BUILD --platform=linux/arm64 +docker --target=aarch64-unknown-linux-gnu
+    BUILD --platform=linux/arm64 +docker --target=aarch64-unknown-linux-musl
     BUILD --platform=linux/amd64 +docker --target=x86_64-unknown-linux-musl
     BUILD +manifests

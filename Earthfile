@@ -38,7 +38,7 @@ build:
     SAVE IMAGE --push ghcr.io/mortenlj/suffiks-ingress/cache:build-${target}
 
 docker:
-    FROM cgr.dev/chainguard/static
+    FROM cgr.dev/chainguard/rust:latest
 
     WORKDIR /bin
     ARG target

@@ -19,7 +19,7 @@ pub struct XIngressSpec {
 
 #[derive(Serialize, Deserialize, JsonSchema, Debug, Clone)]
 pub struct Ingress {
-    /// List of routes this applicatin will handle
+    /// List of routes this application will handle
     routes: Vec<Route>,
 }
 

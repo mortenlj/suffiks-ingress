@@ -1,10 +1,13 @@
-use kube::{Client, CustomResource};
+use k8s_openapi::api::networking::v1::{HTTPIngressPath, HTTPIngressRuleValue, IngressBackend, IngressRule, IngressServiceBackend, ServiceBackendPort};
+use k8s_openapi::apimachinery::pkg::apis::meta::v1::{ObjectMeta, OwnerReference};
+use kube::{Api, Client, CustomResource};
+use kube::api::PostParams;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-use tokio::sync::mpsc::Receiver;
+use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
 use tonic::{Code, Request, Response, Status};
-use tracing::warn;
+use tracing::{info, warn};
 
 use crate::protogen::extension::{DefaultResponse, DocumentationRequest, DocumentationResponse, Response as ExtensionResponse, SyncRequest, ValidationRequest, ValidationResponse};
 use crate::protogen::extension::extension_server::Extension;
@@ -57,12 +60,64 @@ impl Extension for IngressHandler {
 
     async fn sync(&self, request: Request<SyncRequest>) -> Result<Response<Self::SyncStream>, Status> {
         warn!("sync called, not implemented");
-        Err(Status::new(Code::Ok, "Sync not implemented"))
+        let sync_request = request.into_inner();
+        let owner = sync_request.owner.unwrap();
+        info!("owner: {:?}", owner);
+        let spec: Ingress = serde_json::from_slice(sync_request.spec.as_slice())
+            .map_err(|e| Status::invalid_argument(e.to_string()))?;
+        info!("spec: {:?}", spec);
+        use k8s_openapi::api::networking::v1::{Ingress as K8sIngress, IngressSpec as K8sIngressSpec};
+        let rules = spec.routes.iter().map(|route| {
+            let paths = vec![
+                HTTPIngressPath {
+                    backend: IngressBackend {
+                        resource: None,
+                        service: Some(IngressServiceBackend {
+                            name: owner.name.clone(),
+                            port: Some(ServiceBackendPort {
+                                name: None,
+                                number: Some(route.port.into()),
+                            }),
+                        }),
+                    },
+                    path: Some(route.path.clone()),
+                    path_type: "Prefix".to_string(),
+                }
+            ];
+            IngressRule {
+                host: Some(route.host.clone()),
+                http: Some(HTTPIngressRuleValue {paths}),
+            }
+        }).collect();
+        let ingress_client: Api<K8sIngress> = Api::default_namespaced(self.client.clone());
+        let ingress = K8sIngress {
+            metadata: ObjectMeta {
+                name: Some(owner.name.clone()),
+                namespace: Some(owner.namespace.clone()),
+                owner_references: Some(vec![OwnerReference {
+                    api_version: owner.api_version.clone(),
+                    kind: owner.kind.clone(),
+                    name: owner.name.clone(),
+                    uid: owner.uid.clone(),
+                    ..Default::default()
+                }]),
+                ..Default::default()
+            },
+            spec: Some(K8sIngressSpec {
+                rules: Some(rules),
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+        ingress_client.replace(owner.name.as_str(), &PostParams::default(), &ingress).await
+            .map_err(|e| Status::aborted(e.to_string()))?;
+        let (_, rx) = mpsc::channel(1);
+        Ok(Response::new(ReceiverStream::from(rx)))
     }
 
     type DeleteStream = ReceiverStream<Result<ExtensionResponse, Status>>;
 
-    async fn delete(&self, request: Request<SyncRequest>) -> Result<Response<Self::DeleteStream>, Status> {
+    async fn delete(&self, _request: Request<SyncRequest>) -> Result<Response<Self::DeleteStream>, Status> {
         warn!("delete called, not implemented");
         Err(Status::new(Code::Ok, "Delete not implemented"))
     }

@@ -41,7 +41,7 @@ docker:
     FROM cgr.dev/chainguard/static:latest
 
     WORKDIR /bin
-    ARG target
+    ARG target=x86_64-unknown-linux-musl
     COPY --platform=linux/amd64 (+build/suffiks-ingress --target=$target) suffiks-ingress
 
     CMD ["/bin/suffiks-ingress"]

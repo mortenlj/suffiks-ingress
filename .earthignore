@@ -32,3 +32,5 @@ __pycache__
 .gradle
 /deploy.yaml
 /src/protogen
+/proto/
+!proto/**/*.proto

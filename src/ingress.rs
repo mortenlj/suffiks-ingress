@@ -68,14 +68,24 @@ impl Extension for IngressHandler {
     }
 
     async fn default(&self, _request: Request<SyncRequest>) -> Result<Response<DefaultResponse>, Status> {
-        Err(Status::new(Code::Unimplemented, "Default not implemented"))
+        // TODO: Return some defaults
+        let resp = DefaultResponse {
+            spec: vec![],
+        };
+        Ok(Response::new(resp))
     }
 
     async fn validate(&self, _request: Request<ValidationRequest>) -> Result<Response<ValidationResponse>, Status> {
-        Err(Status::new(Code::Unimplemented, "Validate not implemented"))
+        // TODO: Do proper validation
+        Ok(Response::new(ValidationResponse::default()))
     }
 
     async fn documentation(&self, _request: Request<DocumentationRequest>) -> Result<Response<DocumentationResponse>, Status> {
-        Err(Status::new(Code::Unimplemented, "Documentation not implemented"))
+        let page = "TODO: Documentation is still pending".as_bytes().to_vec();
+        let pages = vec![page];
+        let resp = DocumentationResponse {
+            pages,
+        };
+        Ok(Response::new(resp))
     }
 }

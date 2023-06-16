@@ -31,7 +31,10 @@ build:
     FROM +chef-cook
 
     COPY --dir src proto build.rs Cargo.lock Cargo.toml .
+    # builtins must be declared
+    ARG EARTHLY_GIT_SHORT_HASH
     ARG target
+    ARG VERSION=$EARTHLY_GIT_SHORT_HASH
     RUN cargo build --release --target ${target}
 
     SAVE ARTIFACT target/${target}/release/suffiks-ingress suffiks-ingress

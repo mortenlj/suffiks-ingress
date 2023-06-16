@@ -59,7 +59,6 @@ impl Extension for IngressHandler {
     type SyncStream = ReceiverStream<Result<ExtensionResponse, Status>>;
 
     async fn sync(&self, request: Request<SyncRequest>) -> Result<Response<Self::SyncStream>, Status> {
-        warn!("sync called, not implemented");
         let sync_request = request.into_inner();
         let owner = sync_request.owner.unwrap();
         info!("owner: {:?}", owner);

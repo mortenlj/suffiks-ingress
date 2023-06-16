@@ -3,7 +3,7 @@ use figment::providers::{Env, Format, Yaml};
 use kube::Client;
 use serde::{Deserialize, Serialize};
 use tonic::transport::Server;
-use tracing::info;
+use tracing::{debug, info};
 use tracing::level_filters::LevelFilter;
 
 use atty::Stream;
@@ -70,14 +70,16 @@ log_level: Info
         .merge(Env::prefixed("SUFFIKS_INGRESS__").split("__"))
         .extract()?;
     logging::init_logging(&config)?;
-    // defining address for our service
-    let addr = "0.0.0.0:8080".parse().unwrap();
-    // create kube client
+    let bin = env!("CARGO_BIN_NAME");
+    let version = option_env!("VERSION").unwrap_or("unknown");
+    info!("{} {} starting up", bin, version);
+    debug!("Creating kube client");
     let client = Client::try_default().await?;
     // creating a service
     let ingress = IngressHandler::new(client);
-    info!("Server listening on {}", addr);
     // adding our service to our server.
+    let addr = "0.0.0.0:8080".parse().unwrap();  // TODO: Get from config
+    info!("Server starting to listen on {}", addr);
     Server::builder()
         .add_service(ExtensionServer::new(ingress))
         .serve(addr)

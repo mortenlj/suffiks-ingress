@@ -32,5 +32,5 @@ tracing-subscriber = { version = "0.3.17", features = ["fmt", "json"] }
     path = "src/crd.rs"
 
 [build-dependencies]
-tonic-build = "0.10.1"
+tonic-build = "0.10.2"
 

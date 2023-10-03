@@ -10,7 +10,7 @@ default-run = "suffiks-ingress"
 anyhow = "1.0.75"
 atty = "0.2.14"
 env_logger = "0.10.0"
-figment = { version = "0.10.10", features = ["env", "yaml"] }
+figment = { version = "0.10.11", features = ["env", "yaml"] }
 futures-core = "0.3.28"
 hyper-rustls = "0.24.1"
 k8s-openapi = { version = "0.20.0", features = ["v1_26", "schemars"] }

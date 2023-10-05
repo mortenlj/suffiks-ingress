@@ -1,0 +1,32 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: suffiks-ingress
+  namespace: ibidem-system
+  labels:
+    app: suffiks-ingress
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: suffiks-ingress
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: suffiks-ingress
+    spec:
+      containers:
+      - image: "{{ environ('image') }}:{{ environ('VERSION') }}"
+        imagePullPolicy: IfNotPresent
+        name: suffiks-ingress
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+      serviceAccountName: suffiks-ingress

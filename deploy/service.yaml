@@ -1,0 +1,17 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: suffiks-ingress
+  namespace: ibidem-system
+  labels:
+    app: suffiks-ingress
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: suffiks-ingress
+  type: ClusterIP

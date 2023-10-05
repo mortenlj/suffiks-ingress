@@ -1,3 +1,4 @@
+use std::collections::BTreeMap;
 use k8s_openapi::api::networking::v1::{HTTPIngressPath, HTTPIngressRuleValue, IngressBackend, IngressRule, IngressServiceBackend, ServiceBackendPort};
 use k8s_openapi::apimachinery::pkg::apis::meta::v1::{ObjectMeta, OwnerReference};
 use kube::{Api, Client, CustomResource};
@@ -98,7 +99,7 @@ impl Extension for IngressHandler {
             .map(|xspec| xspec.ingress)?;
         debug!("spec: {:?}", spec);
 
-        use k8s_openapi::api::networking::v1::{Ingress as K8sIngress, IngressSpec as K8sIngressSpec};
+        use k8s_openapi::api::networking::v1::{Ingress as K8sIngress, IngressSpec as K8sIngressSpec, IngressTLS as K8sIngressTLS};
 
         let rules = Self::build_rules(&owner, &spec);
         let owner_references = Some(vec![OwnerReference {
@@ -109,6 +110,12 @@ impl Extension for IngressHandler {
             ..Default::default()
         }]);
 
+        let tls_hosts = spec.routes.iter().map(|route| route.host.clone()).collect();
+        let tls: Option<Vec<K8sIngressTLS>> = Some(K8sIngressTLS {
+            hosts: Some(tls_hosts),
+            secret_name: Some(format!("{}-ingress-cert", owner.name)),
+        }).map(|x| vec![x]);
+
         let ingress_client: Api<K8sIngress> = Api::default_namespaced(self.client.clone());
 
         match ingress_client.get_opt(owner.name.as_str()).await {
@@ -118,11 +125,20 @@ impl Extension for IngressHandler {
                     metadata: ObjectMeta {
                         name: Some(owner.name.clone()),
                         namespace: Some(owner.namespace.clone()),
+                        annotations: Some(BTreeMap::from([
+                            ("cert-manager.io/cluster-issuer".to_string(), "letsencrypt-production".to_string())
+                        ])),
+                        labels: Some(BTreeMap::from([
+                            ("app.kubernetes.io/name".to_string(), owner.name.clone()),
+                            ("app.kubernetes.io/instance".to_string(), owner.name.clone()),
+                            ("app.kubernetes.io/managed-by".to_string(), "suffiks-ingress".to_string()),
+                        ])),
                         owner_references,
                         ..Default::default()
                     },
                     spec: Some(K8sIngressSpec {
                         rules,
+                        tls,
                         ingress_class_name: spec.ingress_class,
                         ..Default::default()
                     }),
@@ -138,15 +154,41 @@ impl Extension for IngressHandler {
             Ok(Some(mut ingress)) => {
                 info!("Updating ingress for {}", owner.name);
                 ingress.metadata.owner_references = owner_references;
+                match ingress.metadata.annotations {
+                    Some(ref mut annotations) => {
+                        annotations.insert("cert-manager.io/cluster-issuer".to_string(), "letsencrypt-production".to_string());
+                    }
+                    None => {
+                        ingress.metadata.annotations = Some(BTreeMap::from([
+                            ("cert-manager.io/cluster-issuer".to_string(), "letsencrypt-production".to_string())
+                        ]));
+                    }
+                }
+                match ingress.metadata.labels {
+                    Some(ref mut labels) => {
+                        labels.insert("app.kubernetes.io/name".to_string(), owner.name.clone());
+                        labels.insert("app.kubernetes.io/instance".to_string(), owner.name.clone());
+                        labels.insert("app.kubernetes.io/managed-by".to_string(), "suffiks-ingress".to_string());
+                    }
+                    None => {
+                        ingress.metadata.labels = Some(BTreeMap::from([
+                            ("app.kubernetes.io/name".to_string(), owner.name.clone()),
+                            ("app.kubernetes.io/instance".to_string(), owner.name.clone()),
+                            ("app.kubernetes.io/managed-by".to_string(), "suffiks-ingress".to_string()),
+                        ]))
+                    }
+                }
                 match ingress.spec {
                     Some(mut ingress_spec) => {
                         ingress_spec.rules = rules;
+                        ingress_spec.tls = tls;
                         ingress_spec.ingress_class_name = spec.ingress_class;
                         ingress.spec = Some(ingress_spec);
                     }
                     None => {
                         ingress.spec = Some(K8sIngressSpec {
                             rules,
+                            tls,
                             ingress_class_name: spec.ingress_class,
                             ..Default::default()
                         });

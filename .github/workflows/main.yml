@@ -86,6 +86,7 @@ jobs:
           chmod +x kubectl
           echo "${{ secrets.KUBECONFIG }}" > /tmp/kubectl/kubeconfig
           echo "KUBECONFIG=/tmp/kubectl/kubeconfig" >> ${GITHUB_ENV}
+          echo "PATH=/tmp/kubectl:${PATH}" >> ${GITHUB_ENV}
       - id: join-zt
         name: Join ZeroTier network
         uses: mortenlj/zerotier-actions/join-zt@main
@@ -95,13 +96,6 @@ jobs:
           ping_target: k3s.home.ibidem.no
       - name: Run kubectl apply
         run: |
-          export PATH=/tmp/kubectl:${PATH}
-          echo "::group::ZeroTier debugging"
-          sudo zerotier-cli info
-          sudo zerotier-cli peers | grep LEAF | sort
-          sudo zerotier-cli listnetworks
-          ping -c 12 -i 5 k3s.home.ibidem.no
-          echo "::endgroup::"
           kubectl apply --namespace=ibidem-system --context=k3s-home --filename=deploy.yaml --selector=app=suffiks-ingress --prune=true --wait=true --timeout=60s
       - name: Leave ZeroTier network
         if: always()

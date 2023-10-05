@@ -116,7 +116,7 @@ impl Extension for IngressHandler {
             secret_name: Some(format!("{}-ingress-cert", owner.name)),
         }).map(|x| vec![x]);
 
-        let ingress_client: Api<K8sIngress> = Api::default_namespaced(self.client.clone());
+        let ingress_client: Api<K8sIngress> = Api::namespaced(self.client.clone(), owner.namespace.as_str());
 
         match ingress_client.get_opt(owner.name.as_str()).await {
             Ok(None) => {

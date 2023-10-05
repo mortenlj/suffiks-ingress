@@ -1,0 +1,9 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: suffiks-ingress-test
+  namespace: ibidem-system
+spec:
+  externalName: glennis.home.zt.ibidem.no
+  type: ExternalName

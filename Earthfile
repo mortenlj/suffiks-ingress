@@ -1,5 +1,4 @@
 VERSION 0.7
-FROM rust:1-bullseye
 
 prepare:
     FROM rust:1
@@ -65,7 +64,7 @@ manifests:
     ARG VERSION=$EARTHLY_GIT_SHORT_HASH
     ARG image=${REGISTRY}/suffiks-ingress
     RUN --entrypoint -- /templates/application.yaml.j2 /templates/variables.toml --format=toml > ./deploy.yaml
-    # RUN cat /templates/*.yaml >> ./deploy.yaml
+    RUN cat /templates/*.yaml >> ./deploy.yaml
     SAVE ARTIFACT ./deploy.yaml AS LOCAL deploy.yaml
 
 deploy:

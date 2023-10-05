@@ -1,0 +1,53 @@
+---
+apiVersion: suffiks.com/v1
+kind: Extension
+metadata:
+  name: suffiks-ingress
+  labels:
+    app: suffiks-ingress
+spec:
+  controller:
+    grpc:
+      namespace: ibidem-system
+      service: suffiks-ingress
+      port: 80
+  targets:
+    - Application
+  openAPIV3Schema:
+    properties:
+      ingress:
+        properties:
+          ingress_class:
+            description: IngressClass to use
+            nullable: true
+            type: string
+          routes:
+            description: List of routes this application will handle
+            items:
+              properties:
+                host:
+                  type: string
+                path:
+                  type: string
+                port:
+                  format: uint16
+                  minimum: 0.0
+                  type: integer
+                type:
+                  enum:
+                    - http
+                    - grpc
+                  type: string
+              required:
+                - host
+                - path
+                - port
+                - type
+              type: object
+            type: array
+        required:
+          - routes
+        type: object
+    required:
+      - ingress
+    type: object

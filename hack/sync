@@ -1,0 +1,14 @@
+#!/usr/bin/bash
+
+# Base64 encode contents of ingress.json and insert into field "spec" of sync_request.json
+function update_request() {
+  local ingress_json
+  local updated_request_json
+
+  ingress_json=$(base64 --wrap=0 < ingress.json)
+  updated_request_json=$(jq --arg ingress_json "$ingress_json" '.spec = $ingress_json' < sync_request.json)
+
+  echo $updated_request_json
+}
+
+update_request | grpcurl -d @ -import-path ../proto/thirdparty/ -import-path ../proto -proto ../proto/suffiks/extension/proto/extension.proto -plaintext localhost:8080 extension.Extension/Sync

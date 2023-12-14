@@ -58,25 +58,30 @@ pub struct Config {
     log_format: LogFormat,
     // Log level
     log_level: LogLevel,
+    // Dry-run
+    dry_run: bool,
 }
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let defaults = "\
 log_level: Info
+dry_run: false
     ";
     let config: Config = Figment::new()
         .merge(Yaml::string(defaults))
+        .merge(Yaml::file("suffiks-ingress.yaml"))
         .merge(Env::prefixed("SUFFIKS_INGRESS__").split("__"))
         .extract()?;
     logging::init_logging(&config)?;
     let bin = env!("CARGO_BIN_NAME");
     let version = option_env!("VERSION").unwrap_or("unknown");
     info!("{} {} starting up", bin, version);
+    info!("Config: {:?}", config);
     debug!("Creating kube client");
     let client = Client::try_default().await?;
     // creating a service
-    let ingress = IngressHandler::new(client);
+    let ingress = IngressHandler::new(client, config.dry_run);
     // adding our service to our server.
     let addr = "0.0.0.0:8080".parse().unwrap();  // TODO: Get from config
     info!("Server starting to listen on {}", addr);

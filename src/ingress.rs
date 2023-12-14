@@ -1,8 +1,11 @@
 use std::collections::BTreeMap;
+
 use k8s_openapi::api::networking::v1::{HTTPIngressPath, HTTPIngressRuleValue, IngressBackend, IngressRule, IngressServiceBackend, ServiceBackendPort};
+use k8s_openapi::api::networking::v1::{Ingress as K8sIngress, IngressSpec as K8sIngressSpec, IngressTLS as K8sIngressTLS};
 use k8s_openapi::apimachinery::pkg::apis::meta::v1::{ObjectMeta, OwnerReference};
 use kube::{Api, Client, CustomResource};
 use kube::api::PostParams;
+use md5::{Md5, Digest};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc;
@@ -47,12 +50,14 @@ pub enum RouteType {
 
 pub struct IngressHandler {
     client: Client,
+    dry_run: bool,
 }
 
 impl IngressHandler {
-    pub fn new(client: Client) -> Self {
+    pub fn new(client: Client, dry_run: bool) -> Self {
         Self {
-            client
+            client,
+            dry_run,
         }
     }
 
@@ -99,8 +104,6 @@ impl Extension for IngressHandler {
             .map(|xspec| xspec.ingress)?;
         debug!("spec: {:?}", spec);
 
-        use k8s_openapi::api::networking::v1::{Ingress as K8sIngress, IngressSpec as K8sIngressSpec, IngressTLS as K8sIngressTLS};
-
         let rules = Self::build_rules(&owner, &spec);
         let owner_references = Some(vec![OwnerReference {
             api_version: owner.api_version.clone(),
@@ -110,10 +113,12 @@ impl Extension for IngressHandler {
             ..Default::default()
         }]);
 
-        let tls_hosts = spec.routes.iter().map(|route| route.host.clone()).collect();
+        let tls_hosts: Vec<String> = spec.routes.iter().map(|route| route.host.clone()).collect();
+        let hosts_md5 = Md5::digest(&tls_hosts.join(",").as_bytes());
+        let hosts_id = fast32::base32::CROCKFORD_LOWER.encode(&hosts_md5);
         let tls: Option<Vec<K8sIngressTLS>> = Some(K8sIngressTLS {
             hosts: Some(tls_hosts),
-            secret_name: Some(format!("{}-ingress-cert", owner.name)),
+            secret_name: Some(format!("cert-ingress-{}", hosts_id)),
         }).map(|x| vec![x]);
 
         let ingress_client: Api<K8sIngress> = Api::namespaced(self.client.clone(), owner.namespace.as_str());
@@ -144,12 +149,15 @@ impl Extension for IngressHandler {
                     }),
                     ..Default::default()
                 };
-                ingress_client.create( &PostParams::default(), &ingress).await
-                    .map_err(|e| {
-                        error!("failed to create ingress: {}", e);
-                        Status::aborted(e.to_string())
-                    })?;
-
+                if self.dry_run {
+                    info!("Dry-run: Would have created ingress {:?}", ingress);
+                } else {
+                    ingress_client.create(&PostParams::default(), &ingress).await
+                        .map_err(|e| {
+                            error!("failed to create ingress: {}", e);
+                            Status::aborted(e.to_string())
+                        })?;
+                }
             }
             Ok(Some(mut ingress)) => {
                 info!("Updating ingress for {}", owner.name);
@@ -195,11 +203,15 @@ impl Extension for IngressHandler {
                     }
                 }
 
-                ingress_client.replace(owner.name.as_str(), &PostParams::default(), &ingress).await
-                    .map_err(|e| {
-                        error!("failed to replace ingress: {}", e);
-                        Status::aborted(e.to_string())
-                    })?;
+                if self.dry_run {
+                    info!("Dry-run: Would have updated ingress {:?}", ingress);
+                } else {
+                    ingress_client.replace(owner.name.as_str(), &PostParams::default(), &ingress).await
+                        .map_err(|e| {
+                            error!("failed to replace ingress: {}", e);
+                            Status::aborted(e.to_string())
+                        })?;
+                }
             }
             Err(e) => {
                 error!("failed to get ingress: {}", e);

@@ -1,0 +1,12 @@
+{
+  "ingress": {
+    "routes": [
+      {
+        "host": "ibidem.no",
+        "path": "/",
+        "port": 80,
+        "type": "http"
+      }
+    ]
+  }
+}

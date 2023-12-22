@@ -15,7 +15,7 @@ figment = { version = "0.10.12", features = ["env", "yaml"] }
 futures-core = "0.3.29"
 hyper-rustls = "0.24.2"
 k8s-openapi = { version = "0.20.0", features = ["v1_26", "schemars"] }
-kube = { version = "0.87.1", default-features = false, features = ["derive", "rustls-tls", "client", "config", "kube-derive"] }
+kube = { version = "0.87.2", default-features = false, features = ["derive", "rustls-tls", "client", "config", "kube-derive"] }
 log = "0.4.20"
 md-5 = "0.10.6"
 prost = "0.12.3"

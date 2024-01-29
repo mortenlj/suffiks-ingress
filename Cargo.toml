@@ -9,7 +9,7 @@ default-run = "suffiks-ingress"
 [dependencies]
 anyhow = "1.0.79"
 atty = "0.2.14"
-env_logger = "0.11.0"
+env_logger = "0.11.1"
 fast32 = "1.0.2"
 figment = { version = "0.10.14", features = ["env", "yaml"] }
 futures-core = "0.3.30"

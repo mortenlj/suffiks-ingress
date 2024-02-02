@@ -5,6 +5,11 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 5
+    groups:
+      k8s:
+        patterns:
+          - kube
+          - k8s-openapi
   - package-ecosystem: github-actions
     directory: "/"
     schedule:

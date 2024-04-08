@@ -227,7 +227,8 @@ impl Extension for IngressHandler {
 
     async fn delete(&self, _request: Request<SyncRequest>) -> Result<Response<Self::DeleteStream>, Status> {
         warn!("delete called, not implemented");
-        Err(Status::new(Code::Ok, "Delete not implemented"))
+        let (_, rx) = mpsc::channel(1);
+        Ok(Response::new(ReceiverStream::from(rx)))
     }
 
     async fn default(&self, _request: Request<SyncRequest>) -> Result<Response<DefaultResponse>, Status> {

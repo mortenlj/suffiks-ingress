@@ -10,11 +10,6 @@ on:
 
 env:
   REGISTRY: ghcr.io/${{ github.repository }}
-  EARTHLY_USE_INLINE_CACHE: true
-  EARTHLY_SAVE_INLINE_CACHE: true
-  EARTHLY_VERBOSE: true
-  EARTHLY_FULL_TARGET: true
-  EARTHLY_OUTPUT: true
 
 jobs:
   setup:
@@ -57,6 +52,16 @@ jobs:
       - name: Build and possibly push suffiks-ingress
         env:
           EARTHLY_PUSH: "${{ github.ref == 'refs/heads/main' }}"
+          EARTHLY_USE_INLINE_CACHE: true
+          EARTHLY_SAVE_INLINE_CACHE: true
+          EARTHLY_VERBOSE: true
+          EARTHLY_FULL_TARGET: true
+          EARTHLY_OUTPUT: true
+          EARTHLY_ORG: ${{ secrets.EARTHLY_ORG }}
+          EARTHLY_SATELLITE: ${{ secrets.EARTHLY_SATELLITE }}
+          EARTHLY_TOKEN: ${{ secrets.EARTHLY_TOKEN }}
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
         run: |
           earthly +deploy --VERSION=${VERSION} --REGISTRY=${REGISTRY}
       - name: Save manifests for later deploy

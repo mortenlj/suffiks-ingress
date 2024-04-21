@@ -94,10 +94,10 @@ jobs:
         with:
           network_id: ${{ secrets.ZEROTIER_NETWORK_ID }}
           api_accesstoken: ${{ secrets.ZEROTIER_API_ACCESSTOKEN }}
-          ping_target: k3s.home.ibidem.no
+          ping_target: k3s2.home.ibidem.no
       - name: Run kubectl apply
         run: |
-          kubectl apply --namespace=ibidem-system --context=k3s-home --filename=deploy.yaml --selector=app=suffiks-ingress --prune=true --wait=true --timeout=60s
+          kubectl apply --namespace=ibidem-system --filename=deploy.yaml --selector=app=suffiks-ingress --prune=true --wait=true --timeout=60s
       - name: Leave ZeroTier network
         if: always()
         uses: mortenlj/zerotier-actions/leave-zt@main

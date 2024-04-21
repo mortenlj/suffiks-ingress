@@ -6,6 +6,7 @@ concurrency:
 
 on:
   push:
+  workflow_dispatch:
 
 env:
   REGISTRY: ghcr.io/${{ github.repository }}

@@ -80,6 +80,17 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: manifests
+      - name: Install and configure kubectl
+        run: |
+          mkdir -p /tmp/kubectl
+          cd /tmp/kubectl
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          curl -LO "https://dl.k8s.io/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
+          echo "$(<kubectl.sha256)  kubectl" | sha256sum --check
+          chmod +x kubectl
+          echo "${{ secrets.KUBECONFIG }}" > /tmp/kubectl/kubeconfig
+          echo "KUBECONFIG=/tmp/kubectl/kubeconfig" >> ${GITHUB_ENV}
+          echo "PATH=/tmp/kubectl:${PATH}" >> ${GITHUB_ENV}
       - id: join-zt
         name: Join ZeroTier network
         uses: mortenlj/zerotier-actions/join-zt@main
@@ -88,11 +99,8 @@ jobs:
           api_accesstoken: ${{ secrets.ZEROTIER_API_ACCESSTOKEN }}
           ping_target: k3s2.home.ibidem.no
       - name: Run kubectl apply
-        uses: actions-hub/kubectl@v1.30.0
-        env:
-          KUBE_CONFIG: ${{ secrets.KUBECONFIG }}
-        with:
-          args: apply --namespace=ibidem-system --filename=deploy.yaml --selector=app=suffiks-ingress --prune=true --wait=true --timeout=60s
+        run: |
+          kubectl apply --namespace=ibidem-system --filename=deploy.yaml --selector=app=suffiks-ingress --prune=true --wait=true --timeout=60s
       - name: Leave ZeroTier network
         if: always()
         uses: mortenlj/zerotier-actions/leave-zt@main

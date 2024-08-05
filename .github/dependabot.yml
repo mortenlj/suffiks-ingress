@@ -10,6 +10,11 @@ updates:
         patterns:
           - kube
           - k8s-openapi
+      server:
+        patterns:
+          - tonic*
+          - prost*
+          - hyper*
   - package-ecosystem: github-actions
     directory: "/"
     schedule:

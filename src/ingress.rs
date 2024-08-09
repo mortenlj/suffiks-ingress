@@ -4,14 +4,14 @@ use k8s_openapi::api::networking::v1::{HTTPIngressPath, HTTPIngressRuleValue, In
 use k8s_openapi::api::networking::v1::{Ingress as K8sIngress, IngressSpec as K8sIngressSpec, IngressTLS as K8sIngressTLS};
 use k8s_openapi::apimachinery::pkg::apis::meta::v1::{ObjectMeta, OwnerReference};
 use kube::{Api, Client, CustomResource};
-use kube::api::PostParams;
+use kube::api::{DeleteParams, PostParams};
 use md5::{Md5, Digest};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::ReceiverStream;
-use tonic::{Code, Request, Response, Status};
-use tracing::{debug, error, info, warn};
+use tonic::{Request, Response, Status};
+use tracing::{debug, error, info};
 
 use crate::protogen::extension::{DefaultResponse, DocumentationRequest, DocumentationResponse, Owner, Response as ExtensionResponse, SyncRequest, ValidationRequest, ValidationResponse};
 use crate::protogen::extension::extension_server::Extension;
@@ -225,8 +225,34 @@ impl Extension for IngressHandler {
 
     type DeleteStream = ReceiverStream<Result<ExtensionResponse, Status>>;
 
-    async fn delete(&self, _request: Request<SyncRequest>) -> Result<Response<Self::DeleteStream>, Status> {
-        warn!("delete called, not implemented");
+    async fn delete(&self, request: Request<SyncRequest>) -> Result<Response<Self::DeleteStream>, Status> {
+        let sync_request = request.into_inner();
+        let owner = sync_request.owner.unwrap();
+        debug!("owner: {:?}", owner);
+
+        let ingress_client: Api<K8sIngress> = Api::namespaced(self.client.clone(), owner.namespace.as_str());
+
+        match ingress_client.get_opt(owner.name.as_str()).await {
+            Ok(None) => {
+                info!("No ingress found, nothing to do")
+            }
+            Ok(Some(ingress)) => {
+                if self.dry_run {
+                    info!("Dry-run: Would have deleted ingress {:?}", ingress);
+                } else {
+                    ingress_client.delete(owner.name.as_str(), &DeleteParams::default()).await
+                        .map_err(|e| {
+                            error!("failed to delete ingress: {}", e);
+                            Status::aborted(e.to_string())
+                        })?;
+                }
+            }
+            Err(e) => {
+                error!("failed to get ingress: {}", e);
+                return Err(Status::aborted(e.to_string()));
+            }
+        }
+
         let (_, rx) = mpsc::channel(1);
         Ok(Response::new(ReceiverStream::from(rx)))
     }

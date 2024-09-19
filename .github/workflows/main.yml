@@ -135,6 +135,7 @@ jobs:
           package: suffiks-ingress/cache
           exclude-tags: prepare
           keep-n-tagged: 1
+          delete-untagged: true
           delete-ghost-images: true
           delete-orphaned-images: true
           delete-partial-images: false

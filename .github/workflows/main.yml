@@ -63,7 +63,7 @@ jobs:
         run: |
           earthly +deploy --VERSION=${VERSION} --REGISTRY=${REGISTRY}
       - name: Save manifests for later deploy
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4
         with:
           name: manifests
           path: deploy.yaml
@@ -77,7 +77,7 @@ jobs:
       - build
     steps:
       - name: Download manifests from build
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4
         with:
           name: manifests
       - name: Install and configure kubectl
@@ -118,7 +118,7 @@ jobs:
       packages: write
     steps:
       - name: Cleanup main images
-        uses: dataaxiom/ghcr-cleanup-action@v1.0.13
+        uses: dataaxiom/ghcr-cleanup-action@98b4022383d6ddb70ccbf6a378b4d8c67a60f066 # v1.0.13
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           package: suffiks-ingress/suffiks-ingress
@@ -129,7 +129,7 @@ jobs:
           delete-orphaned-images: true
           delete-partial-images: true
       - name: Cleanup old cache images
-        uses: dataaxiom/ghcr-cleanup-action@v1.0.13
+        uses: dataaxiom/ghcr-cleanup-action@98b4022383d6ddb70ccbf6a378b4d8c67a60f066 # v1.0.13
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           package: suffiks-ingress/cache
